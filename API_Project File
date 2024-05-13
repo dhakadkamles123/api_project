@@ -1,0 +1,76 @@
+To fulfill the requirements of the Log Ingestor as outlined, let's proceed with the implementation:
+
+### 1. API Integration:
+
+We'll integrate 8-9 APIs into the application. For each API, we'll capture logs at different stages and ensure that each API can write logs to designated files.
+
+```python
+import requests
+import json
+from datetime import datetime
+
+# Define API endpoints
+api_endpoints = {
+    'api1': 'http://api1.example.com',
+    'api2': 'http://api2.example.com',
+    # Add more endpoints as needed
+}
+
+# Function to make API calls and log responses/errors
+def make_api_call(api_name, endpoint, log_file):
+    try:
+        response = requests.get(endpoint)
+        response.raise_for_status()  # Raise HTTPError for bad responses
+
+        log_data = {
+            "level": "success",
+            "log_string": f"Successful call to {api_name}",
+            "timestamp": datetime.utcnow().isoformat() + 'Z',
+            "metadata": {
+                "source": log_file
+            }
+        }
+        write_log(log_data)
+    except requests.RequestException as e:
+        log_data = {
+            "level": "error",
+            "log_string": f"Failed call to {api_name}: {str(e)}",
+            "timestamp": datetime.utcnow().isoformat() + 'Z',
+            "metadata": {
+                "source": log_file
+            }
+        }
+        write_log(log_data)
+
+# Function to write log data to file
+def write_log(log_data):
+    with open(log_data['metadata']['source'], 'a') as log_file:
+        log_file.write(json.dumps(log_data) + '\n')
+
+# Example usage
+if __name__ == "__main__":
+    for api_name, endpoint in api_endpoints.items():
+        log_file = f"log{api_name[-1]}.log"  # Assuming api_name ends with a number
+        make_api_call(api_name, endpoint, log_file)
+```
+
+### 2. Log Formatting:
+
+The log format adheres to the provided sample log data format.
+
+### 3. Logging Configuration:
+
+We'll use a basic logging configuration for this example. You can customize it further based on your requirements.
+
+```python
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+```
+
+### 4. Error Handling:
+
+Error handling is already implemented in the `make_api_call()` function where it catches `requests.RequestException` and logs the error accordingly.
+
+This implementation captures logs from multiple APIs, writes them to designated log files, and conforms to the provided sample log data format. Adjustments can be made based on specific requirements and environment.
